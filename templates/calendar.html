@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Activity Calendar – HabitFit{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1><i class="fa-regular fa-calendar-check" style="color:var(--accent-green);"></i> Interactive Activity Calendar</h1>
+    <p>Click any date to inspect completed habits, workouts, rest days, water intake, and sleep history.</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary btn-sm" onclick="changeCalendarMonth(-1)">
+      <i class="fa-solid fa-chevron-left"></i> Prev Month
+    </button>
+    <h3 id="calendarMonthTitle" style="min-width:170px; text-align:center; font-size:1.1rem;">Loading...</h3>
+    <button class="btn btn-secondary btn-sm" onclick="changeCalendarMonth(1)">
+      Next Month <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Visual Legend -->
+<div class="card" style="margin-bottom:20px; padding:12px 18px; display:flex; flex-wrap:wrap; align-items:center; gap:18px; font-size:0.82rem;">
+  <strong>Visual Legend:</strong>
+  <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:var(--accent-green);"></span> 100% Habits Completed</span>
+  <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:var(--accent-amber);"></span> Partial Completion</span>
+  <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:var(--accent-rose);"></span> Missed Activities</span>
+  <span class="badge badge-purple"><i class="fa-solid fa-dumbbell"></i> Workout Logged</span>
+  <span class="badge badge-amber">Scheduled Rest Day</span>
+</div>
+
+<div class="grid-asymmetric">
+  <!-- Monthly Calendar Grid -->
+  <div class="card">
+    <div class="calendar-grid">
+      <div class="cal-weekday">Sun</div>
+      <div class="cal-weekday">Mon</div>
+      <div class="cal-weekday">Tue</div>
+      <div class="cal-weekday">Wed</div>
+      <div class="cal-weekday">Thu</div>
+      <div class="cal-weekday">Fri</div>
+      <div class="cal-weekday">Sat</div>
+    </div>
+    <div class="calendar-grid" id="calendarMonthGrid"></div>
+  </div>
+
+  <!-- Selected Date Inspector Panel -->
+  <div>
+    <div class="card" id="calendarDayInspector">
+      <p style="color:var(--text-secondary);">Select a date on the calendar to inspect activity details.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

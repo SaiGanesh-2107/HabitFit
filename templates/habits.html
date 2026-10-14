@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Daily Habits — HabitFit{% endblock %}
+{% block breadcrumb %}
+  <span style="color:var(--text-secondary);">Main</span>
+  <span style="color:var(--text-muted); margin:0 4px;">/</span>
+  <span>Daily Habits</span>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header-row">
+  <div class="page-heading">
+    <h1>Daily Habits</h1>
+    <p>Build consistent routines, one day at a time.</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openAddHabitModal()">
+      <i class="fa-solid fa-plus"></i> Add Habit
+    </button>
+  </div>
+</div>
+
+<!-- A. Date and Completion Summary -->
+<div class="card" style="margin-bottom:20px; padding:18px 22px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div>
+      <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em;">Completion Progress</span>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-top:2px;">
+        <span style="font-size:22px; font-weight:700; color:var(--status-completed);" id="habitsSummaryPct">0%</span>
+        <span style="font-size:13.5px; color:var(--text-secondary);">
+          (<span id="habitsSummaryCompleted">0</span> of <span id="habitsSummaryTotal">0</span> completed)
+        </span>
+      </div>
+    </div>
+    <div style="width:260px;">
+      <div class="progress-bar-container" style="height:8px; margin:0;">
+        <div class="progress-bar-fill" id="habitsSummaryBar" style="width:0%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- B. Habit Filters & Date Selector -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="setHabitFilter('all', this)">All</button>
+    <button class="filter-tab" onclick="setHabitFilter('pending', this)">Pending</button>
+    <button class="filter-tab" onclick="setHabitFilter('completed', this)">Completed</button>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:8px;">
+    <label style="font-size:12.5px; color:var(--text-secondary); font-weight:500;">Date:</label>
+    <input type="date" id="habitDateSelector" class="form-input" value="{{ today_str }}" style="width:160px; height:36px;" onchange="loadHabitsPage()">
+  </div>
+</div>
+
+<!-- C. Habit List (Clean rows with dividers) -->
+<div class="card" style="padding:16px 20px;">
+  <div id="habitsListTable">
+    <p style="color:var(--text-secondary); font-size:13px;">Loading habits...</p>
+  </div>
+</div>
+
+<!-- D. Add / Edit Habit Modal Dialog -->
+<div class="modal-overlay" id="habitModalDialog">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="font-size:17px; font-weight:700;" id="habitModalTitle">Add Daily Habit</h3>
+      <button onclick="HabitFit.closeModal('habitModalDialog')" style="color:var(--text-secondary); font-size:16px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="submitHabitModalForm(event)">
+      <input type="hidden" id="habitModalId">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Habit Name</label>
+        <input type="text" id="habitModalName" class="form-input" placeholder="e.g., Morning workout" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Category</label>
+          <select id="habitModalCategory" class="form-input">
+            <option value="Health">Health</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Learning">Learning</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Frequency</label>
+          <select id="habitModalFrequency" class="form-input">
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+            <option value="weekends">Weekends</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Optional Reminder</label>
+          <input type="time" id="habitModalReminder" class="form-input" value="08:00">
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Daily Target Value</label>
+          <input type="number" id="habitModalTargetVal" class="form-input" value="1" min="1">
+          <input type="hidden" id="habitModalTargetUnit" value="check">
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-secondary" onclick="HabitFit.closeModal('habitModalDialog')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Habit</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

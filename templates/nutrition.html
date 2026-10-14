@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Water & Nutrition – HabitFit{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1><i class="fa-solid fa-glass-water" style="color:var(--accent-cyan);"></i> Water & Nutrition Tracker</h1>
+    <p>Stay hydrated and hit your daily calorie, protein, carbohydrate, and fat targets.</p>
+  </div>
+  <div class="header-actions">
+    <input type="date" id="nutritionDatePicker" class="form-control" value="{{ today_str }}"
+           onchange="loadNutritionPage()" style="width:170px;">
+    <a href="{{ url_for('settings_page') }}" class="btn btn-secondary">
+      <i class="fa-solid fa-sliders"></i> Edit Daily Targets
+    </a>
+  </div>
+</div>
+
+<div class="grid-asymmetric">
+  <!-- Left Column: Nutrition & Meal Logger -->
+  <div>
+    <!-- Macro Progress Card -->
+    <div class="card" style="margin-bottom:22px;">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-fire-flame-curved"></i> Daily Calories & Macronutrients</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:0; align-items:center;">
+        <div>
+          <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.84rem; margin-bottom:4px;">
+              <strong>Total Calories</strong>
+              <span id="macroCaloriesVal">0 / 2200 kcal</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="macroCaloriesBar" style="width:0%;"></div></div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.84rem; margin-bottom:4px;">
+              <strong style="color:var(--accent-green);">Protein</strong>
+              <span id="macroProteinVal">0g / 160g</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="macroProteinBar" style="width:0%; background:var(--accent-green);"></div></div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.84rem; margin-bottom:4px;">
+              <strong style="color:var(--accent-purple);">Carbohydrates</strong>
+              <span id="macroCarbsVal">0g / 220g</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="macroCarbsBar" style="width:0%; background:var(--accent-purple);"></div></div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.84rem; margin-bottom:4px;">
+              <strong style="color:var(--accent-amber);">Healthy Fats</strong>
+              <span id="macroFatVal">0g / 70g</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="macroFatBar" style="width:0%; background:var(--accent-amber);"></div></div>
+          </div>
+        </div>
+
+        <div style="height:210px;">
+          <canvas id="nutritionMacroChartCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log a Meal / Snack Form -->
+    <div class="card" style="margin-bottom:22px;">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-utensils"></i> Log Meal or Snack</div>
+      </div>
+      <form onsubmit="submitMealLogForm(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Meal Type</label>
+            <select id="mealTypeInput" class="form-control">
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Snack">Snack</option>
+              <option value="Post-Workout">Post-Workout</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Food / Meal Description</label>
+            <input type="text" id="mealFoodNameInput" class="form-control" placeholder="e.g., Grilled Chicken Bowl with Brown Rice" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Calories (kcal)</label>
+            <input type="number" id="mealCaloriesInput" class="form-control" value="450" min="0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+            <input type="number" step="0.5" id="mealProteinInput" class="form-control" value="35" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Carbs (g)</label>
+            <input type="number" step="0.5" id="mealCarbsInput" class="form-control" value="45" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fat (g)</label>
+            <input type="number" step="0.5" id="mealFatInput" class="form-control" value="12" min="0">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Add Meal Entry (+10 XP)
+        </button>
+      </form>
+    </div>
+
+    <!-- Meals Logged Today -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-bowl-food"></i> Meals Logged</div>
+      </div>
+      <div id="mealsLoggedList"></div>
+    </div>
+  </div>
+
+  <!-- Right Column: Circular Water Tracker -->
+  <div>
+    <div class="card" style="text-align:center;">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-droplet" style="color:var(--accent-cyan);"></i> Daily Water Tracker</div>
+        <span class="badge badge-cyan" id="waterRemainingBadge">2500 ml left</span>
+      </div>
+
+      <div class="water-circle-wrap">
+        <div class="circular-progress">
+          <svg>
+            <circle class="bg-ring" cx="95" cy="95" r="80"></circle>
+            <circle class="fg-ring" id="waterProgressRingFg" cx="95" cy="95" r="80"></circle>
+          </svg>
+          <div class="circle-inner-text">
+            <h3 id="waterCirclePct">0%</h3>
+            <span id="waterCircleConsumed">0 / 2500 ml</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Add Water Buttons -->
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:14px 0;">
+        <button class="btn btn-secondary btn-sm" onclick="addWaterIntake(250)">+250 ml</button>
+        <button class="btn btn-secondary btn-sm" onclick="addWaterIntake(500)">+500 ml</button>
+        <button class="btn btn-secondary btn-sm" onclick="addWaterIntake(750)">+750 ml</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:18px;">
+        <input type="number" id="customWaterMlInput" class="form-control" placeholder="Custom ml (e.g. 350)" min="50" max="3000">
+        <button class="btn btn-primary btn-sm" onclick="addWaterIntake(parseInt(document.getElementById('customWaterMlInput').value || '300', 10))">
+          Add Water
+        </button>
+      </div>
+
+      <div style="text-align:left; border-top:1px solid var(--border-color); padding-top:14px;">
+        <strong style="font-size:0.84rem; display:block; margin-bottom:8px;">Today's Hydration Log</strong>
+        <div id="waterLogsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Sign In — HabitFit{% endblock %}
+{% block auth_content %}
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--bg-main);">
+  <div class="card" style="width:100%; max-width:400px; padding:32px;">
+    <!-- Logo & Brand -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:24px;">
+      <div class="brand-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <h1 style="font-size:18px; font-weight:700; color:var(--text-primary);">HabitFit</h1>
+        <p style="font-size:12px; color:var(--text-secondary);">Daily Habit Tracker & Workout Planner</p>
+      </div>
+    </div>
+
+    <h2 style="font-size:20px; font-weight:700; margin-bottom:6px;">Sign in to your account</h2>
+    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;">
+      Track habits, execute workout splits, and review your progress.
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div style="padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:13px; background:{% if category == 'error' %}var(--status-danger-soft){% else %}var(--status-completed-soft){% endif %}; color:{% if category == 'error' %}var(--status-danger){% else %}var(--status-completed){% endif %};">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Email Address</label>
+        <input type="email" name="email" class="form-input" placeholder="alex@example.com" required>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Password</label>
+        <input type="password" name="password" class="form-input" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; height:42px;">
+        Sign In
+      </button>
+    </form>
+
+    <!-- 1-Click Demo Account Access -->
+    <div style="margin:20px 0; padding:14px; border:1px dashed var(--border-color); border-radius:var(--radius-sm); text-align:center; background:var(--bg-card-subtle);">
+      <span style="font-size:11px; font-weight:700; color:var(--accent-purple); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:4px;">
+        Instant Demo Account
+      </span>
+      <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
+        Explore a seeded account with 14 days of habits and workout history.
+      </p>
+      <a href="{{ url_for('demo_login') }}" class="btn btn-secondary btn-sm" style="width:100%; font-size:12.5px;">
+        <i class="fa-solid fa-user-check"></i> 1-Click Demo Login (Alex Rivera)
+      </a>
+    </div>
+
+    <p style="text-align:center; font-size:13px; color:var(--text-secondary);">
+      Don't have an account? <a href="{{ url_for('register') }}" style="color:var(--accent-purple); font-weight:600;">Sign up</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

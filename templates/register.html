@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Create Account — HabitFit{% endblock %}
+{% block auth_content %}
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--bg-main);">
+  <div class="card" style="width:100%; max-width:440px; padding:32px;">
+    <!-- Brand -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+      <div class="brand-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <h1 style="font-size:18px; font-weight:700; color:var(--text-primary);">HabitFit</h1>
+        <p style="font-size:12px; color:var(--text-secondary);">Daily Habit Tracker & Workout Planner</p>
+      </div>
+    </div>
+
+    <h2 style="font-size:20px; font-weight:700; margin-bottom:6px;">Create your account</h2>
+    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;">
+      Start building consistent daily habits and organizing your gym training.
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div style="padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:13px; background:{% if category == 'error' %}var(--status-danger-soft){% else %}var(--status-completed-soft){% endif %}; color:{% if category == 'error' %}var(--status-danger){% else %}var(--status-completed){% endif %};">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('register') }}">
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Full Name</label>
+        <input type="text" name="name" class="form-input" placeholder="Jordan Taylor" required>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Email Address</label>
+        <input type="email" name="email" class="form-input" placeholder="jordan@example.com" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Password</label>
+          <input type="password" name="password" class="form-input" placeholder="••••••••" minlength="6" required>
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-input" placeholder="••••••••" minlength="6" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; height:42px; margin-top:6px;">
+        Create Account
+      </button>
+    </form>
+
+    <p style="text-align:center; font-size:13px; color:var(--text-secondary); margin-top:18px;">
+      Already have an account? <a href="{{ url_for('login') }}" style="color:var(--accent-purple); font-weight:600;">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Exercise Library – HabitFit{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1><i class="fa-solid fa-book-medical" style="color:var(--accent-green);"></i> Exercise Library</h1>
+    <p>Browse exercises grouped by muscle group with form instructions, animated movement guides, and 1-click split assignment.</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-primary" onclick="HabitFit.openModal('createCustomExModal')">
+      <i class="fa-solid fa-plus"></i> Create Custom Exercise
+    </button>
+  </div>
+</div>
+
+<!-- Search & Muscle Group Filter -->
+<div class="card" style="margin-bottom:22px; padding:16px;">
+  <div class="form-row">
+    <div style="grid-column: span 2;">
+      <input type="text" id="exLibSearch" class="form-control" placeholder="Search by exercise name, muscle group, or equipment (e.g., Bench, Barbell, Cable)..." oninput="renderExerciseLibrary()">
+    </div>
+    <div>
+      <select id="exLibMuscleFilter" class="form-control" onchange="renderExerciseLibrary()">
+        <option value="">All Muscle Groups</option>
+        <option value="Chest">Chest</option>
+        <option value="Back">Back</option>
+        <option value="Legs">Legs</option>
+        <option value="Shoulders">Shoulders</option>
+        <option value="Biceps">Biceps</option>
+        <option value="Triceps">Triceps</option>
+        <option value="Abs">Abs</option>
+        <option value="Traps">Traps</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise Cards Grid -->
+<div class="grid-3" id="exerciseLibraryGrid">
+  <div class="card">Loading exercises...</div>
+</div>
+
+<!-- Assign Exercise to Split Modal -->
+<div class="modal-backdrop" id="assignToSplitModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Add Exercise to My Workout Split</h3>
+      <button onclick="HabitFit.closeModal('assignToSplitModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="submitAssignToSplitForm(event)">
+      <div class="form-group">
+        <label class="form-label">Exercise</label>
+        <input type="text" id="assignExName" class="form-control" readonly>
+        <input type="hidden" id="assignExMuscle">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Select Day in Your Split</label>
+        <select id="assignExPlanId" class="form-control" required></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Sets</label>
+          <input type="number" id="assignExSets" class="form-control" value="3" min="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reps</label>
+          <input type="text" id="assignExReps" class="form-control" value="8-12" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Weight (kg)</label>
+          <input type="number" step="0.5" id="assignExWeight" class="form-control" value="25">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rest (sec)</label>
+          <input type="number" step="15" id="assignExRest" class="form-control" value="90">
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn btn-secondary" onclick="HabitFit.closeModal('assignToSplitModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Add to Day</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Create Custom Exercise Modal -->
+<div class="modal-backdrop" id="createCustomExModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Add Custom Exercise to Library</h3>
+      <button onclick="HabitFit.closeModal('createCustomExModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="submitCustomExerciseForm(event)">
+      <div class="form-group">
+        <label class="form-label">Exercise Name</label>
+        <input type="text" id="customExName" class="form-control" placeholder="e.g., Pendlay Barbell Row" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Muscle Group</label>
+          <select id="customExMuscle" class="form-control">
+            <option value="Chest">Chest</option>
+            <option value="Back">Back</option>
+            <option value="Legs">Legs</option>
+            <option value="Shoulders">Shoulders</option>
+            <option value="Biceps">Biceps</option>
+            <option value="Triceps">Triceps</option>
+            <option value="Abs">Abs</option>
+            <option value="Traps">Traps</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Equipment</label>
+          <input type="text" id="customExEquipment" class="form-control" value="Barbell / Dumbbell">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulty</label>
+          <select id="customExDifficulty" class="form-control">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate" selected>Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Default Sets</label>
+          <input type="number" id="customExSets" class="form-control" value="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Default Reps</label>
+          <input type="text" id="customExReps" class="form-control" value="8-12">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Default Rest (sec)</label>
+          <input type="number" id="customExRest" class="form-control" value="90">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Movement Form & Instructions</label>
+        <textarea id="customExInstructions" class="form-control" rows="3" placeholder="Describe proper setup, execution, and breathing cues..." required></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn btn-secondary" onclick="HabitFit.closeModal('createCustomExModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Exercise</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

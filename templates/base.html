@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.settings.theme if current_user and current_user.settings else 'light' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>{% block title %}HabitFit — Daily Habit Tracker & Workout Planner{% endblock %}</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function() {
+      const saved = localStorage.getItem('habitfit_theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
+</head>
+<body>
+  {% if current_user %}
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="HabitFit.closeMobileDrawer()"></div>
+
+  <div class="app-wrapper">
+    <!-- Sidebar (230px fixed on desktop, slide-out drawer on mobile) -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="brand-icon"><i class="fa-solid fa-bolt"></i></div>
+          <div class="brand-title">HabitFit</div>
+        </div>
+        <button class="sidebar-close-btn" onclick="HabitFit.closeMobileDrawer()" aria-label="Close Navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group-label">MAIN</div>
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('habits_page') }}" class="nav-item {% if active_page == 'habits' %}active{% endif %}">
+          <i class="fa-solid fa-list-check"></i> <span>Daily Habits</span>
+        </a>
+        <a href="{{ url_for('workouts_page') }}" class="nav-item {% if active_page == 'workouts' %}active{% endif %}">
+          <i class="fa-solid fa-dumbbell"></i> <span>Workout Planner</span>
+        </a>
+        <a href="{{ url_for('progress_page') }}" class="nav-item {% if active_page == 'progress' %}active{% endif %}">
+          <i class="fa-solid fa-chart-line"></i> <span>Progress</span>
+        </a>
+
+        <div class="nav-group-label">PREFERENCES</div>
+        <a href="{{ url_for('reminders_page') }}" class="nav-item {% if active_page == 'reminders' %}active{% endif %}">
+          <i class="fa-regular fa-bell"></i> <span>Reminders</span>
+        </a>
+        <a href="{{ url_for('settings_page') }}" class="nav-item {% if active_page == 'settings' %}active{% endif %}">
+          <i class="fa-solid fa-gear"></i> <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-snippet">
+          <div class="user-avatar">{{ current_user.name[0] | upper }}</div>
+          <div class="user-meta">
+            <div class="user-meta-name">{{ current_user.name }}</div>
+          </div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="user-logout-btn" title="Sign Out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Viewport -->
+    <div class="main-viewport">
+      <!-- Top Header (~72px high) -->
+      <header class="top-header">
+        <div class="header-left">
+          <!-- Mobile Hamburger Toggle -->
+          <button class="icon-button mobile-menu-toggle" id="mobileMenuToggle" onclick="HabitFit.toggleMobileDrawer()" aria-label="Open Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="header-breadcrumb">
+            {% block breadcrumb %}
+              <span>{{ active_page | capitalize if active_page else 'Dashboard' }}</span>
+            {% endblock %}
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="header-date-badge">
+            <i class="fa-regular fa-calendar"></i>
+            <span class="desktop-date">{{ today_formatted }}</span>
+            <span class="mobile-date">{{ today_str }}</span>
+          </div>
+
+          <!-- Notification Bell with Unread Badge & Popover -->
+          <div style="position:relative;">
+            <button class="icon-button" id="headerNotifBtn" title="Reminders & Notifications" aria-label="Notifications">
+              <i class="fa-regular fa-bell"></i>
+              <span class="unread-badge" id="headerUnreadBadge" style="display:none;">0</span>
+            </button>
+            <div class="notif-popover" id="headerNotifPopover">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <strong style="font-size:13.5px;"><i class="fa-solid fa-bell" style="color:var(--accent-purple);"></i> Active Reminders</strong>
+                <a href="{{ url_for('reminders_page') }}" style="font-size:12px; color:var(--accent-purple);">View all</a>
+              </div>
+              <div id="headerNotifList"></div>
+            </div>
+          </div>
+
+          <!-- Quick Theme Toggle -->
+          <button class="icon-button" onclick="HabitFit.toggleTheme()" title="Toggle Dark/Light Theme" aria-label="Toggle Theme">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+          </button>
+
+          <!-- Avatar -->
+          <a href="{{ url_for('settings_page') }}" class="user-avatar" style="width:34px; height:34px; font-size:13px;" title="Settings">
+            {{ current_user.name[0] | upper }}
+          </a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="page-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, msg in messages %}
+              <div class="card" style="margin-bottom:18px; padding:12px 18px; border-left:4px solid {% if category == 'error' %}var(--status-danger){% else %}var(--status-completed){% endif %}; display:flex; justify-content:space-between; align-items:center;">
+                <span>{{ msg }}</span>
+                <button onclick="this.parentElement.remove()" style="color:var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Mobile Bottom Navigation (for Main Destinations) -->
+      <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('habits_page') }}" class="mobile-nav-link {% if active_page == 'habits' %}active{% endif %}">
+          <i class="fa-solid fa-list-check"></i> <span>Habits</span>
+        </a>
+        <a href="{{ url_for('workouts_page') }}" class="mobile-nav-link {% if active_page == 'workouts' %}active{% endif %}">
+          <i class="fa-solid fa-dumbbell"></i> <span>Workouts</span>
+        </a>
+        <a href="{{ url_for('progress_page') }}" class="mobile-nav-link {% if active_page == 'progress' %}active{% endif %}">
+          <i class="fa-solid fa-chart-line"></i> <span>Progress</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+  {% else %}
+    {% block auth_content %}{% endblock %}
+  {% endif %}
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Application Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/habits.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/workouts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/progress.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/reminders.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

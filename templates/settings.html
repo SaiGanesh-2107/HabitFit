@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Settings — HabitFit{% endblock %}
+{% block breadcrumb %}
+  <span style="color:var(--text-secondary);">Preferences</span>
+  <span style="color:var(--text-muted); margin:0 4px;">/</span>
+  <span>Settings</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+  <div class="page-heading">
+    <h1>Settings</h1>
+    <p>Manage your account profile, theme appearance, and workout preferences.</p>
+  </div>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:20px; max-width:720px;">
+  <!-- 1. Profile Section -->
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">Profile Information</div>
+    </div>
+    <form onsubmit="saveProfileForm(event)">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Full Name</label>
+        <input type="text" id="settingsNameInput" class="form-input" value="{{ current_user.name }}" required>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Email Address</label>
+        <input type="email" class="form-input" value="{{ current_user.email }}" disabled style="opacity:0.65; cursor:not-allowed;">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Update Profile</button>
+    </form>
+  </div>
+
+  <!-- 2. Appearance & Theme -->
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">Appearance</div>
+    </div>
+    <div style="display:flex; gap:16px;">
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+        <input type="radio" name="themeRadio" value="light" {% if current_user.settings.theme != 'dark' %}checked{% endif %} onchange="applyThemeSelect('light')">
+        <span>Light Theme (Default Clean SaaS)</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+        <input type="radio" name="themeRadio" value="dark" {% if current_user.settings.theme == 'dark' %}checked{% endif %} onchange="applyThemeSelect('dark')">
+        <span>Dark Theme</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 3. Workout Preferences -->
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">Workout Preferences</div>
+    </div>
+    <form onsubmit="savePreferencesForm(event)">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Weight Unit</label>
+          <select id="prefUnitSelect" class="form-input">
+            <option value="kg" {% if current_user.settings.unit_preference == 'kg' %}selected{% endif %}>Kilograms (kg)</option>
+            <option value="lbs" {% if current_user.settings.unit_preference == 'lbs' %}selected{% endif %}>Pounds (lbs)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Preferred Workout Days</label>
+          <input type="text" id="prefDaysInput" class="form-input" value="{{ current_user.settings.preferred_workout_days or 'Mon,Tue,Wed,Fri,Sat' }}">
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="checkbox" id="prefNotifsInput" {% if current_user.settings.notifications_enabled %}checked{% endif %} style="width:16px; height:16px; accent-color:var(--accent-purple);">
+          <span>Enable In-App Activity Reminders</span>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Save Preferences</button>
+    </form>
+  </div>
+
+  <!-- 4. Account & Password -->
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">Account Security</div>
+    </div>
+    <form onsubmit="savePasswordForm(event)">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Current Password</label>
+          <input type="password" id="currentPasswordInput" class="form-input" placeholder="••••••••" required>
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">New Password (min 6 chars)</label>
+          <input type="password" id="newPasswordInput" class="form-input" placeholder="••••••••" minlength="6" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm">Change Password</button>
+    </form>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong style="font-size:13.5px;">Sign Out</strong>
+        <p style="font-size:12.5px; color:var(--text-secondary);">End your current session on this computer.</p>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-danger-outline">Sign Out</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveProfileForm(e) {
+  e.preventDefault();
+  const name = document.getElementById("settingsNameInput").value.trim();
+  const res = await HabitFit.api("/api/settings/profile", { method: "PUT", body: { name } });
+  HabitFit.toast(res.message);
+}
+
+async function applyThemeSelect(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("habitfit_theme", theme);
+  await HabitFit.api("/api/settings/preferences", { method: "PUT", body: { theme } });
+  HabitFit.toast(`Applied ${theme} theme.`);
+}
+
+async function savePreferencesForm(e) {
+  e.preventDefault();
+  const payload = {
+    unit_preference: document.getElementById("prefUnitSelect").value,
+    preferred_workout_days: document.getElementById("prefDaysInput").value.trim(),
+    notifications_enabled: document.getElementById("prefNotifsInput").checked ? 1 : 0,
+    theme: document.documentElement.getAttribute("data-theme") || "light"
+  };
+  const res = await HabitFit.api("/api/settings/preferences", { method: "PUT", body: payload });
+  HabitFit.toast(res.message);
+}
+
+async function savePasswordForm(e) {
+  e.preventDefault();
+  const cur = document.getElementById("currentPasswordInput").value;
+  const next = document.getElementById("newPasswordInput").value;
+  const res = await HabitFit.api("/api/settings/password", {
+    method: "PUT",
+    body: { current_password: cur, new_password: next }
+  });
+  HabitFit.toast(res.message);
+  document.getElementById("currentPasswordInput").value = "";
+  document.getElementById("newPasswordInput").value = "";
+}
+</script>
+{% endblock %}

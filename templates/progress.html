@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Progress — HabitFit{% endblock %}
+{% block breadcrumb %}
+  <span style="color:var(--text-secondary);">Main</span>
+  <span style="color:var(--text-muted); margin:0 4px;">/</span>
+  <span>Progress</span>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header & Time Filters -->
+<div class="page-header-row">
+  <div class="page-heading">
+    <h1>Progress & Analytics</h1>
+    <p>Track your habit consistency, lifting records, and training volume.</p>
+  </div>
+  <div class="page-actions">
+    <div class="filter-tabs">
+      <button class="filter-tab prog-filter-tab" onclick="loadProgressPage(7, this)">7 Days</button>
+      <button class="filter-tab prog-filter-tab active" onclick="loadProgressPage(30, this)">30 Days</button>
+      <button class="filter-tab prog-filter-tab" onclick="loadProgressPage(90, this)">90 Days</button>
+    </div>
+  </div>
+</div>
+
+<!-- B. Four Summary Cards -->
+<div class="summary-cards-row">
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Workouts Completed</span>
+      <div class="summary-card-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
+    </div>
+    <div class="summary-card-value" id="progSessionsCompleted">0</div>
+    <div class="summary-card-sub">In selected timeframe</div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Habit Completion Rate</span>
+      <div class="summary-card-icon icon-green"><i class="fa-solid fa-circle-check"></i></div>
+    </div>
+    <div class="summary-card-value" id="progHabitRate">0%</div>
+    <div class="summary-card-sub">Scheduled habits completed</div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Total Training Duration</span>
+      <div class="summary-card-icon icon-purple"><i class="fa-solid fa-stopwatch"></i></div>
+    </div>
+    <div class="summary-card-value" id="progTotalDuration">0m</div>
+    <div class="summary-card-sub">Recorded time in session</div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Current Streak</span>
+      <div class="summary-card-icon icon-amber"><i class="fa-solid fa-fire"></i></div>
+    </div>
+    <div class="summary-card-value" id="progCurrentStreak">0 days</div>
+    <div class="summary-card-sub">Highest active habit streak</div>
+  </div>
+</div>
+
+<!-- C. Habit Consistency Chart & D. Workout Performance Chart -->
+<div class="dashboard-grid-2col">
+  <!-- Habit Consistency Line Chart -->
+  <div class="card">
+    <div class="card-header-row">
+      <div>
+        <div class="card-title">Habit Consistency Trend</div>
+        <small style="color:var(--text-secondary);">Daily percentage of habits completed</small>
+      </div>
+    </div>
+    <div style="height:230px; width:100%;">
+      <canvas id="habitConsistencyChartCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Workout Performance Progression Line Chart -->
+  <div class="card">
+    <div class="card-header-row">
+      <div>
+        <div class="card-title">Workout Performance Progression</div>
+        <small style="color:var(--text-secondary);">Top weight lifted across sessions</small>
+      </div>
+      <div>
+        <select id="exerciseProgressSelect" class="form-input" style="height:32px; font-size:12.5px; padding:0 8px; width:180px;" onchange="renderExercisePerformanceChart(this.value)">
+          <option value="">Loading exercises...</option>
+        </select>
+      </div>
+    </div>
+    <div style="height:230px; width:100%;">
+      <canvas id="workoutPerformanceChartCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- E. Recent Workout History Table -->
+<div class="card">
+  <div class="card-header-row">
+    <div class="card-title">Recent Workout History</div>
+    <a href="{{ url_for('workouts_page') }}" class="btn btn-sm btn-secondary">New Session</a>
+  </div>
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; text-align:left;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-color); color:var(--text-secondary); font-size:11.5px; font-weight:700; text-transform:uppercase;">
+          <th style="padding:10px;">Date</th>
+          <th style="padding:10px;">Workout</th>
+          <th style="padding:10px;">Duration</th>
+          <th style="padding:10px;">Exercises</th>
+          <th style="padding:10px;">Notes</th>
+        </tr>
+      </thead>
+      <tbody id="recentWorkoutsTableBody">
+        <tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading history...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

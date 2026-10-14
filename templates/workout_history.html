@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Workout History – HabitFit{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1><i class="fa-solid fa-clock-rotate-left" style="color:var(--accent-green);"></i> Workout History & Performance Log</h1>
+    <p>Review every completed training session, sets, reps, weights lifted, and Personal Records.</p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('workouts_page') }}" class="btn btn-primary">
+      <i class="fa-solid fa-dumbbell"></i> Log New Workout
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPIs -->
+<div class="grid-4">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Logged Sessions</span>
+      <h3 id="histTotalSessions">0</h3>
+      <small>Matching current filter</small>
+    </div>
+    <div class="stat-icon green"><i class="fa-solid fa-calendar-check"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Total Training Time</span>
+      <h3 id="histTotalMinutes">0 mins</h3>
+      <small>Time under tension</small>
+    </div>
+    <div class="stat-icon purple"><i class="fa-solid fa-stopwatch"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Total Volume Lifted</span>
+      <h3 id="histTotalVolume">0 kg</h3>
+      <small>Sets × Reps × Weight</small>
+    </div>
+    <div class="stat-icon cyan"><i class="fa-solid fa-weight-hanging"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Personal Records</span>
+      <h3 id="histTotalPrs">0</h3>
+      <small>New max weight milestones</small>
+    </div>
+    <div class="stat-icon amber"><i class="fa-solid fa-trophy"></i></div>
+  </div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="card" style="margin-bottom:20px; padding:16px;">
+  <div class="form-row">
+    <div style="grid-column: span 2;">
+      <input type="text" id="historySearchInput" class="form-control" placeholder="Search by workout title, exercise name, or session notes..." oninput="loadWorkoutHistoryPage()">
+    </div>
+    <div>
+      <select id="historyMuscleFilter" class="form-control" onchange="loadWorkoutHistoryPage()">
+        <option value="">All Muscle Groups</option>
+        <option value="Chest">Chest</option>
+        <option value="Back">Back</option>
+        <option value="Legs">Legs</option>
+        <option value="Shoulders">Shoulders</option>
+        <option value="Biceps">Biceps</option>
+        <option value="Triceps">Triceps</option>
+        <option value="Abs">Abs</option>
+        <option value="Traps">Traps</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Sessions List -->
+<div id="workoutHistoryList"></div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Workout Planner — HabitFit{% endblock %}
+{% block breadcrumb %}
+  <span style="color:var(--text-secondary);">Main</span>
+  <span style="color:var(--text-muted); margin:0 4px;">/</span>
+  <span>Workout Planner</span>
+{% endblock %}
+
+{% block content %}
+<!-- A. Page Heading -->
+<div class="page-header-row">
+  <div class="page-heading">
+    <h1>Workout Planner</h1>
+    <p>Plan your training and track every session. &bull; Active Routine: <strong style="color:var(--accent-purple);" id="activeSplitNameText">No active routine</strong></p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-secondary" onclick="openEditPlanModal(selectedDayIdx)">
+      <i class="fa-solid fa-pen"></i> Edit Weekly Plan
+    </button>
+    <div style="position:relative; display:inline-block;">
+      <select class="form-input" style="height:40px; font-weight:600; cursor:pointer;" onchange="if(this.value) applySplitTemplateChoice(this.value)">
+        <option value="">Switch Split Template...</option>
+        <option value="ppl">Push / Pull / Legs (PPL)</option>
+        <option value="upper_lower">Upper / Lower Split</option>
+        <option value="full_body">Full Body 3-Day Split</option>
+        <option value="custom">Custom Split</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- B. Weekly Workout Schedule (Seven Day Cards) -->
+<div class="workout-week-grid" id="workoutWeekScheduleGrid">
+  <div class="card" style="grid-column:1/-1; text-align:center;">Loading weekly schedule...</div>
+</div>
+
+<!-- C. Selected Day Details & Start Workout Action -->
+<div id="selectedDayDetailsPanel">
+  <div class="card"><p style="color:var(--text-secondary);">Select a day above to view details.</p></div>
+</div>
+
+<!-- Edit Workout Day Plan Modal -->
+<div class="modal-overlay" id="editPlanModalDialog">
+  <div class="modal-box" style="max-width:540px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="font-size:17px; font-weight:700;" id="editPlanModalTitle">Edit Workout Day</h3>
+      <button onclick="HabitFit.closeModal('editPlanModalDialog')" style="color:var(--text-secondary); font-size:16px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="submitEditPlanForm(event)">
+      <input type="hidden" id="editPlanDayIdx">
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Workout Name</label>
+        <input type="text" id="editPlanWorkoutName" class="form-input" placeholder="e.g., Push Day" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Target Muscle Groups</label>
+          <input type="text" id="editPlanMuscles" class="form-input" placeholder="Chest · Shoulders · Triceps">
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Est. Duration (mins)</label>
+          <input type="number" id="editPlanDuration" class="form-input" value="55" min="10" max="180">
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+          <input type="checkbox" id="editPlanIsRest" style="width:16px; height:16px; accent-color:var(--status-warning);">
+          <span>Schedule as Rest & Recovery Day</span>
+        </label>
+      </div>
+
+      <!-- Dynamic Exercises List -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--text-secondary);">Exercises, Sets, Reps & Rest</label>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="addModalExerciseRow()">
+            <i class="fa-solid fa-plus"></i> Add Exercise
+          </button>
+        </div>
+        <div id="modalExerciseRowsContainer"></div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-secondary" onclick="HabitFit.closeModal('editPlanModalDialog')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Reminders — HabitFit{% endblock %}
+{% block breadcrumb %}
+  <span style="color:var(--text-secondary);">Preferences</span>
+  <span style="color:var(--text-muted); margin:0 4px;">/</span>
+  <span>Reminders</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+  <div class="page-heading">
+    <h1>Reminders</h1>
+    <p>Stay on track with your daily routine.</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-secondary btn-sm" onclick="HabitFit.requestNotificationPermission()">
+      <i class="fa-solid fa-desktop"></i> Enable Browser Alerts
+    </button>
+    <button class="btn btn-primary btn-sm" onclick="openAddReminderModal()">
+      <i class="fa-solid fa-plus"></i> Add Reminder
+    </button>
+  </div>
+</div>
+
+<!-- Browser Notification Notice -->
+<div class="card" style="margin-bottom:20px; padding:14px 18px; border-left:4px solid var(--accent-purple);">
+  <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+    <strong style="color:var(--text-primary);"><i class="fa-solid fa-circle-info" style="color:var(--accent-purple);"></i> Reminder Delivery:</strong>
+    Reminders trigger sound and desktop notifications while HabitFit is open in your browser. Standard browser timers check your schedule every 30 seconds.
+  </p>
+</div>
+
+<!-- Upcoming Reminders -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header-row">
+    <div class="card-title">Upcoming Reminders</div>
+  </div>
+  <div id="upcomingRemindersList">
+    <p style="color:var(--text-secondary); font-size:13px;">Loading reminders...</p>
+  </div>
+</div>
+
+<!-- Past / Disabled Reminders -->
+<div class="card">
+  <div class="card-header-row">
+    <div class="card-title">Past / Disabled Reminders</div>
+  </div>
+  <div id="pastRemindersList">
+    <p style="color:var(--text-secondary); font-size:13px;">No past reminders.</p>
+  </div>
+</div>
+
+<!-- Add Reminder Modal Dialog -->
+<div class="modal-overlay" id="addReminderModalDialog">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="font-size:17px; font-weight:700;">Add Reminder</h3>
+      <button onclick="HabitFit.closeModal('addReminderModalDialog')" style="color:var(--text-secondary); font-size:16px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="submitReminderForm(event)">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Reminder Title</label>
+        <input type="text" id="remModalTitle" class="form-input" placeholder="e.g., Morning workout in 30 minutes" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Related Activity</label>
+          <select id="remModalType" class="form-input">
+            <option value="none">General</option>
+            <option value="habit">Daily Habit</option>
+            <option value="workout">Workout Session</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Scheduled Time</label>
+          <input type="time" id="remModalTime" class="form-input" value="08:00" required>
+        </div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Repeat Frequency</label>
+        <select id="remModalRepeat" class="form-input">
+          <option value="daily">Daily</option>
+          <option value="weekdays">Weekdays (Mon-Fri)</option>
+          <option value="weekends">Weekends (Sat-Sun)</option>
+          <option value="never">One-Time (Never)</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-secondary" onclick="HabitFit.closeModal('addReminderModalDialog')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Reminder</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — HabitFit{% endblock %}
+{% block breadcrumb %}
+  <span style="color:var(--text-secondary);">Overview</span>
+  <span style="color:var(--text-muted); margin:0 4px;">/</span>
+  <span>Dashboard</span>
+{% endblock %}
+
+{% block content %}
+<!-- A. Page Heading -->
+<div class="page-header-row">
+  <div class="page-heading">
+    <h1>Good morning, {{ current_user.name.split(' ')[0] }}</h1>
+    <p>Small steps every day lead to lasting progress. &bull; <span style="color:var(--text-primary); font-weight:500;">{{ today_formatted }}</span></p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openAddHabitModal()">
+      <i class="fa-solid fa-plus"></i> Add Habit
+    </button>
+  </div>
+</div>
+
+<!-- B. Summary Cards (Row of 4 on Desktop, Equal Height) -->
+<div class="summary-cards-row">
+  <!-- Card 1: Today's Habits -->
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Today's Habits</span>
+      <div class="summary-card-icon icon-green"><i class="fa-solid fa-list-check"></i></div>
+    </div>
+    <div class="summary-card-value" id="dashHabitsFraction">0 / 0</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="dashHabitsBar" style="width:0%;"></div>
+    </div>
+    <div class="summary-card-sub" id="dashHabitsRemaining">Loading...</div>
+  </div>
+
+  <!-- Card 2: Today's Workout -->
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Today's Workout</span>
+      <div class="summary-card-icon icon-purple"><i class="fa-solid fa-dumbbell"></i></div>
+    </div>
+    <div class="summary-card-value" id="dashWorkoutTitle" style="font-size:19px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading...</div>
+    <div class="summary-card-sub" id="dashWorkoutSub" style="margin:4px 0 6px;">Planned duration: ~50 mins</div>
+    <div>
+      <a href="{{ url_for('workouts_page') }}" id="dashWorkoutBtn" class="btn btn-secondary btn-sm" style="padding:0 10px; height:28px; font-size:12px;">
+        View Workout
+      </a>
+    </div>
+  </div>
+
+  <!-- Card 3: Current Streak -->
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Current Streak</span>
+      <div class="summary-card-icon icon-amber"><i class="fa-solid fa-fire"></i></div>
+    </div>
+    <div class="summary-card-value" id="dashStreakValue">0 days</div>
+    <div class="summary-card-sub">Keep your routine going</div>
+  </div>
+
+  <!-- Card 4: Weekly Completion -->
+  <div class="summary-card">
+    <div class="summary-card-top">
+      <span class="summary-card-label">Weekly Completion</span>
+      <div class="summary-card-icon icon-purple"><i class="fa-solid fa-chart-simple"></i></div>
+    </div>
+    <div class="summary-card-value" id="dashWeeklyPct">0%</div>
+    <div class="summary-card-sub" id="dashWeeklyDiff">Compared to last week</div>
+  </div>
+</div>
+
+<!-- C. Main Dashboard Grid (Left 60% Today's Habits, Right 40% Today's Workout) -->
+<div class="dashboard-grid-2col">
+  <!-- Left Section: Today's Habits -->
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">Today's Habits</div>
+      <a href="{{ url_for('habits_page') }}" style="font-size:13px; color:var(--accent-purple); font-weight:600;">View all</a>
+    </div>
+    <div id="dashHabitsList">
+      <p style="color:var(--text-secondary); font-size:13px;">Loading habits...</p>
+    </div>
+  </div>
+
+  <!-- Right Section: Today's Workout -->
+  <div class="card" id="dashWorkoutCard">
+    <div class="card-header-row">
+      <div class="card-title">Today's Workout</div>
+      <a href="{{ url_for('workouts_page') }}" style="font-size:13px; color:var(--accent-purple); font-weight:600;">Planner</a>
+    </div>
+    <div id="dashWorkoutBody">
+      <p style="color:var(--text-secondary); font-size:13px;">Loading workout...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Section: Weekly Activity Bar Chart (Mon through Sun) -->
+<div class="card">
+  <div class="card-header-row">
+    <div>
+      <div class="card-title">Weekly Activity</div>
+      <small style="color:var(--text-secondary);" id="dashChartWeekRange">Monday to Sunday habits completed</small>
+    </div>
+    <div style="font-size:13px; color:var(--text-secondary);">
+      Total Completed: <strong style="color:var(--text-primary);" id="dashChartTotal">0</strong>
+    </div>
+  </div>
+  <div style="height:220px; width:100%;">
+    <canvas id="dashWeeklyActivityCanvas"></canvas>
+  </div>
+</div>
+
+<!-- Add Habit Modal Dialog (Reusable) -->
+<div class="modal-overlay" id="habitModalDialog">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="font-size:17px; font-weight:700;" id="habitModalTitle">Add Daily Habit</h3>
+      <button onclick="HabitFit.closeModal('habitModalDialog')" style="color:var(--text-secondary); font-size:16px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="submitHabitModalForm(event)">
+      <input type="hidden" id="habitModalId">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Habit Name</label>
+        <input type="text" id="habitModalName" class="form-input" placeholder="e.g., Read for 20 minutes" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Category</label>
+          <select id="habitModalCategory" class="form-input">
+            <option value="Health">Health</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Learning">Learning</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Schedule</label>
+          <select id="habitModalFrequency" class="form-input">
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+            <option value="weekends">Weekends</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Reminder Time</label>
+          <input type="time" id="habitModalReminder" class="form-input" value="08:00">
+        </div>
+        <div>
+          <label style="display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">Daily Target</label>
+          <input type="number" id="habitModalTargetVal" class="form-input" value="1" min="1">
+          <input type="hidden" id="habitModalTargetUnit" value="check">
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-secondary" onclick="HabitFit.closeModal('habitModalDialog')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Habit</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let weeklyActivityChart = null;
+
+async function loadDashboardView() {
+  try {
+    const data = await HabitFit.api('/api/dashboard');
+    const s = data.summary;
+
+    // Card 1: Today's Habits
+    const th = s.today_habits;
+    if (th.total === 0) {
+      document.getElementById('dashHabitsFraction').textContent = '0 / 0';
+      document.getElementById('dashHabitsBar').style.width = '0%';
+      document.getElementById('dashHabitsRemaining').textContent = 'No habits added yet';
+    } else {
+      document.getElementById('dashHabitsFraction').textContent = `${th.completed} / ${th.total} completed`;
+      document.getElementById('dashHabitsBar').style.width = `${th.percentage}%`;
+      document.getElementById('dashHabitsRemaining').textContent = `${th.remaining} remaining today`;
+    }
+
+    // Card 2: Today's Workout
+    const tw = s.today_workout;
+    const twTitle = document.getElementById('dashWorkoutTitle');
+    const twSub = document.getElementById('dashWorkoutSub');
+    const twBtn = document.getElementById('dashWorkoutBtn');
+    if (tw) {
+      twTitle.textContent = tw.is_rest_day ? 'Rest & Recovery' : tw.workout_name;
+      twSub.textContent = tw.is_rest_day ? 'Sleep, hydration & recovery' : `~${tw.estimated_duration} mins • ${tw.muscle_groups}`;
+      if (twBtn) {
+        twBtn.textContent = 'View Workout';
+        twBtn.href = "{{ url_for('workouts_page') }}";
+      }
+    } else {
+      twTitle.textContent = 'No workout scheduled';
+      twSub.textContent = 'Plan your weekly training routine';
+      if (twBtn) {
+        twBtn.textContent = 'Create Workout Plan';
+        twBtn.href = "{{ url_for('workouts_page') }}";
+      }
+    }
+
+    // Card 3: Current Streak
+    document.getElementById('dashStreakValue').textContent = `${s.current_streak.days} days`;
+
+    // Card 4: Weekly Completion
+    document.getElementById('dashWeeklyPct').textContent = `${s.weekly_completion.percentage}%`;
+    const diff = s.weekly_completion.diff;
+    if (diff !== null && diff !== undefined) {
+      document.getElementById('dashWeeklyDiff').textContent = diff >= 0 ? `+${diff}% vs last week` : `${diff}% vs last week`;
+    } else {
+      document.getElementById('dashWeeklyDiff').textContent = th.total === 0 ? 'No activity recorded yet' : 'Compared to last week';
+    }
+
+    // Habits List
+    renderDashHabits(data.habits || []);
+
+    // Workout Card
+    renderDashWorkout(tw);
+
+    // Weekly Activity Chart
+    renderWeeklyBarChart(data.weekly_chart);
+  } catch (err) {
+    console.error('Error loading dashboard:', err);
+  }
+}
+
+function renderDashHabits(habits) {
+  const container = document.getElementById('dashHabitsList');
+  if (habits.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:36px 16px; color:var(--text-secondary);">
+        <i class="fa-solid fa-list-check" style="font-size:32px; color:var(--text-muted); margin-bottom:10px;"></i>
+        <h4 style="font-size:15px; font-weight:600; color:var(--text-primary); margin-bottom:4px;">No habits added yet</h4>
+        <p style="font-size:13px; color:var(--text-secondary); max-width:320px; margin:0 auto 14px;">
+          Build good daily routines and stay consistent by tracking your first activity.
+        </p>
+        <button class="btn btn-sm btn-primary" onclick="openAddHabitModal()">
+          <i class="fa-solid fa-plus"></i> Add Your First Habit
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = habits.map(h => `
+    <div class="habit-row ${h.completed_today ? 'completed' : ''}">
+      <div class="habit-left">
+        <button class="checkbox-btn" onclick="toggleDashHabit(${h.id})" title="Toggle completion">
+          <i class="fa-solid fa-check"></i>
+        </button>
+        <div>
+          <div class="habit-info-name">${h.name}</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+            <span class="badge-pill">${h.category}</span>
+            <span class="habit-meta-time"><i class="fa-regular fa-clock"></i> ${h.reminder_time}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <span class="habit-streak-badge"><i class="fa-solid fa-fire"></i> ${h.current_streak}d</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function toggleDashHabit(habitId) {
+  const res = await HabitFit.api(`/api/habits/${habitId}/toggle`, { method: 'POST' });
+  HabitFit.toast(res.message);
+  await loadDashboardView();
+}
+
+function renderDashWorkout(tw) {
+  const container = document.getElementById('dashWorkoutBody');
+  if (!tw) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:36px 16px; color:var(--text-secondary);">
+        <i class="fa-solid fa-dumbbell" style="font-size:32px; color:var(--text-muted); margin-bottom:10px;"></i>
+        <h4 style="font-size:15px; font-weight:600; color:var(--text-primary); margin-bottom:4px;">No workout scheduled</h4>
+        <p style="font-size:13px; color:var(--text-secondary); max-width:320px; margin:0 auto 14px;">
+          Choose a workout split or create your custom training plan to schedule exercises.
+        </p>
+        <a href="{{ url_for('workouts_page') }}" class="btn btn-sm btn-primary">
+          <i class="fa-solid fa-calendar-plus"></i> Create Workout Plan
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  if (tw.is_rest_day) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:24px 12px;">
+        <i class="fa-solid fa-bed" style="font-size:28px; color:var(--status-warning); margin-bottom:8px;"></i>
+        <h3 style="font-size:16px; margin-bottom:4px;">Rest & Recovery Day</h3>
+        <p style="font-size:13px; color:var(--text-secondary);">Allow your muscles to recover, hydrate properly, and aim for 8 hours of sleep tonight.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const exList = (tw.exercises || []).slice(0, 4).map((e, idx) => `
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px solid var(--border-color);">
+      <span>${idx + 1}. <strong>${e.exercise_name}</strong></span>
+      <span style="color:var(--text-secondary);">${e.target_sets} &times; ${e.target_reps}</span>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <h3 style="font-size:17px; font-weight:700;">${tw.workout_name}</h3>
+      <p style="font-size:13px; color:var(--text-secondary);">${tw.muscle_groups} &bull; ${tw.exercise_count} exercises &bull; ~${tw.estimated_duration} mins</p>
+    </div>
+    <div style="margin-bottom:16px;">
+      ${exList}
+    </div>
+    <a href="/workouts/active/${tw.day_of_week}" class="btn btn-primary" style="width:100%;">
+      <i class="fa-solid fa-play"></i> Start Workout
+    </a>
+  `;
+}
+
+function renderWeeklyBarChart(chartData) {
+  const canvas = document.getElementById('dashWeeklyActivityCanvas');
+  if (!canvas || !window.Chart) return;
+
+  document.getElementById('dashChartTotal').textContent = chartData.total_completed;
+  document.getElementById('dashChartWeekRange').textContent = chartData.total_completed === 0 ? "No activity recorded this week" : chartData.week_range;
+
+  if (weeklyActivityChart) weeklyActivityChart.destroy();
+
+  weeklyActivityChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Habits Completed',
+        data: chartData.values,
+        backgroundColor: '#6C63FF',
+        borderRadius: 6,
+        barPercentage: 0.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.parsed.y} completed`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#758096', font: { size: 12 } }
+        },
+        y: {
+          beginAtZero: true,
+          suggestedMax: 4,
+          ticks: { color: '#758096', precision: 0, font: { size: 11 } },
+          grid: { color: '#E8ECF2' }
+        }
+      }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboardView);
+</script>
+{% endblock %}

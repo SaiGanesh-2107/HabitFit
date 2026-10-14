@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Sleep & Recovery Tracker – HabitFit{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1><i class="fa-solid fa-moon" style="color:var(--accent-purple);"></i> Sleep & Recovery Tracker</h1>
+    <p>Monitor sleep duration, bedtime consistency, and daily physical recovery ratings.</p>
+  </div>
+</div>
+
+<!-- 4 Sleep Summary KPIs -->
+<div class="grid-4">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Average Sleep</span>
+      <h3 id="sleepAvgDuration">0 hrs</h3>
+      <small>Goal: {{ current_user.preferences.sleep_goal_hours }} hrs / night</small>
+    </div>
+    <div class="stat-icon purple"><i class="fa-solid fa-bed"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Sleep Consistency</span>
+      <h3 id="sleepConsistencyScore">0%</h3>
+      <small>Nights hitting target range</small>
+    </div>
+    <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Avg Sleep Quality</span>
+      <h3 id="sleepAvgQuality">0 / 10</h3>
+      <small>Restfulness rating</small>
+    </div>
+    <div class="stat-icon cyan"><i class="fa-solid fa-star"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span>Avg Muscle Recovery</span>
+      <h3 id="sleepAvgRecovery">0 / 10</h3>
+      <small>Readiness for training</small>
+    </div>
+    <div class="stat-icon amber"><i class="fa-solid fa-battery-full"></i></div>
+  </div>
+</div>
+
+<div class="grid-asymmetric">
+  <!-- Left: Weekly Sleep Chart & History Table -->
+  <div>
+    <div class="card" style="margin-bottom:22px;">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Weekly Sleep Duration & Recovery Trends</div>
+      </div>
+      <div class="chart-box">
+        <canvas id="sleepTrendChartCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Sleep & Recovery Logs</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.86rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border-strong); color:var(--text-secondary); text-align:left;">
+              <th style="padding:10px;">Date</th>
+              <th style="padding:10px;">Window</th>
+              <th style="padding:10px;">Duration</th>
+              <th style="padding:10px;">Quality</th>
+              <th style="padding:10px;">Energy</th>
+              <th style="padding:10px;">Recovery</th>
+              <th style="padding:10px;">Notes</th>
+              <th style="padding:10px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="sleepLogsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Log Sleep Form & Wellness Guidance -->
+  <div>
+    <div class="card" style="margin-bottom:22px;">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-plus-circle"></i> Log Sleep & Recovery</div>
+      </div>
+      <form onsubmit="submitSleepLogForm(event)">
+        <div class="form-group">
+          <label class="form-label">Wake-Up Date</label>
+          <input type="date" id="sleepDateInput" class="form-control" value="{{ today_str }}" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Bedtime</label>
+            <input type="time" id="sleepTimeInput" class="form-control" value="22:45" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Wake-Up Time</label>
+            <input type="time" id="wakeTimeInput" class="form-control" value="06:45" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Sleep Quality (1-10)</label>
+            <input type="number" id="sleepQualityInput" class="form-control" value="8" min="1" max="10" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Morning Energy (1-10)</label>
+            <input type="number" id="sleepEnergyInput" class="form-control" value="8" min="1" max="10" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Recovery (1-10)</label>
+            <input type="number" id="sleepRecoveryInput" class="form-control" value="8" min="1" max="10" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (e.g., Post-leg day soreness, deep sleep)</label>
+          <input type="text" id="sleepNotesInput" class="form-control" placeholder="Woke up feeling well-rested">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Sleep Record (+15 XP)
+        </button>
+      </form>
+    </div>
+
+    <!-- General Wellness Guidance -->
+    <div class="card" style="border-left:4px solid var(--accent-purple);">
+      <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-heart-pulse"></i> Recovery & Sleep Hygiene Tips</div>
+      <ul style="padding-left:18px; font-size:0.83rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:6px;">
+        <li>Aim for 7.5 to 9 hours of sleep to support muscle protein synthesis and CNS recovery.</li>
+        <li>Keep your sleep and wake-up times within a 45-minute window, even on rest days.</li>
+        <li>Avoid bright overhead screens and heavy caffeine within 6 hours of bedtime.</li>
+      </ul>
+      <p style="font-size:0.74rem; color:var(--text-muted); margin-top:12px;">
+        <em>Disclaimer: HabitFit provides general fitness and wellness tracking only and is not a medical diagnostic tool.</em>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
